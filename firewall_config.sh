@@ -27,10 +27,10 @@ if [[ "$SET_CONFIG" == "n" ]]; then
 fi
 
 # guess the default public network interface
-GUESS_INTERFACE=ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}'
+GUESS_INTERFACE=$(ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}')
 ip link
-until [[ $INTERFACE ]]; do
-  read -rp "\nEnter the public network interface: " -e -i $GUESS_INTERFACE INTERFACE
+until [[ "$INTERFACE" != "" ]]; do
+  read -rp "Enter the public network interface: " -e -i "$GUESS_INTERFACE" INTERFACE
 done
 
 # Install ipset and iptables
