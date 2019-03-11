@@ -1,0 +1,88 @@
+#!/bin/bash
+# Config ipv4 firewall for CentOS 7.x by Aryan
+
+# Install ipset and iptables
+yum install iptables ipset -y
+# Install service that will save config after reboot
+yum install iptables-service ipset-service -y
+
+# Enable service for reboot
+systemctl enable iptables
+systemctl enable ipset
+
+# systemctl [stop|start|restart] iptables
+#systemctl start ipset
+#systemctl start iptables
+
+# ------------------
+# Start to config...
+# ------------------
+
+# Create ipset for iran IPs
+ipset create iran_ipv4 hash:net
+
+# Read CIDR file and add them to ipset
+while IFS="" read -r p || [ -n "$p" ]
+do
+  ipset add iran_ipv4 $p
+done < iran_ipv4.csv
+
+# Create firewall ruls
+# {
+# Empty all rules
+iptables -t filter -F
+iptables -t filter -X
+
+# Set default output to accept because of VPN
+# We don't need forward for softether so drop all
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT ACCEPT
+
+# Authorize already established connections. it is important for speed
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -t filter -A INPUT -i lo -j ACCEPT
+iptables -t filter -A OUTPUT -o lo -j ACCEPT
+
+# Disable input Ping it also will disable PMTUD. I am not sure about this rule.
+iptables -t filter -A INPUT -p icmp -m state --state NEW -j DROP
+#iptables -t filter -A INPUT -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
+#iptables -t filter -A OUTPUT -p icmp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -t filter -A OUTPUT -p icmp -m -j ACCEPT
+
+# Access SSH only from Iran 
+iptables -t filter -A INPUT -m set --match-set iran_ipv4 src -p tcp --dport 22 --state new -j ACCEPT
+iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst -p tcp --sport 22 --state new -j ACCEPT
+
+# ------ need rethink ------
+# Enable DNS
+#iptables -t filter -A INPUT -p tcp --dport 53 -j ACCEPT
+#iptables -t filter -A INPUT -p udp --dport 53 -j ACCEPT
+#iptables -t filter -A OUTPUT -p tcp --dport 53 -j ACCEPT
+#iptables -t filter -A OUTPUT -p udp --dport 53 -j ACCEPT
+
+#iptables -A OUTPUT -p udp -d $dnsip --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A INPUT  -p udp -s $dnsip --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+#iptables -A OUTPUT -p tcp -d $dnsip --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+#iptables -A INPUT  -p tcp -s $dnsip --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+
+# you only can connect to vpn from iran and no program can start connection to Iran so you can't connect to Iran with vpn
+iptables -t filter -A INPUT -m set --match-set iran_ipv4 src --state new -p tcp --dport 443 -j ACCEPT
+iptables -t filter -A INPUT -m set --match-set iran_ipv4 src --state new -p udp --dport 443 -j ACCEPT
+iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p tcp -j REJECT --reject-with icmp-host-prohibited
+iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p udp -j REJECT --reject-with icmp-host-prohibited
+
+# enable NTP
+#iptables -t filter -A OUTPUT -p udp --dport 123 -j ACCEPT
+# it will accept by default rule. no need to set it.
+
+# Log before dropping
+iptables -A INPUT  -j LOG  -m limit --limit 12/min --log-level 4 --log-prefix 'IP INPUT drop: '
+iptables -A INPUT -j DROP
+
+# }
+
+# Save the firewall setting
+service ipset save
+service iptables save
