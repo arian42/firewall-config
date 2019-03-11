@@ -2,13 +2,13 @@
 # Config ipv4 firewall for CentOS 7.x by Aryan
 
 # Install ipset and iptables
-yum install iptables ipset -y
+##yum install iptables ipset -y
 # Install service that will save config after reboot
-yum install iptables-service ipset-service -y
+##yum install iptables-service ipset-service -y
 
 # Enable service for reboot
-systemctl enable iptables
-systemctl enable ipset
+##systemctl enable iptables
+##systemctl enable ipset
 
 # systemctl [stop|start|restart] iptables
 #systemctl start ipset
@@ -90,5 +90,5 @@ iptables -A INPUT -j DROP
 # }
 
 # Save the firewall setting
-service ipset save
-service iptables save
+##service ipset save
+##service iptables save
