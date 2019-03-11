@@ -73,10 +73,10 @@ iptables -A OUTPUT -p tcp --sport 22 -m set --match-set iran_ipv4 dst -m state -
 
 printf "\e[1;33m debug\e[0m 5"
 # you only can connect to vpn from iran and no program can start connection to Iran so you can't connect to Iran with vpn
-iptables -A INPUT -m set --match-set iran_ipv4 src --state new -p tcp --dport 443 -j ACCEPT
-iptables -A INPUT -m set --match-set iran_ipv4 src --state new -p udp --dport 443 -j ACCEPT
-iptables -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p tcp -j REJECT --reject-with icmp-host-prohibited
-iptables -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p udp -j REJECT --reject-with icmp-host-prohibited
+iptables -A INPUT  -p tcp --dport 443 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
+iptables -A INPUT  -p udp --dport 443 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
+iptables -A OUTPUT -p tcp -m set --match-set iran_ipv4 dst -m state --state new -j REJECT --reject-with icmp-host-prohibited
+iptables -A OUTPUT -p udp -m set --match-set iran_ipv4 dst -m state --state new -j REJECT --reject-with icmp-host-prohibited
 
 # enable NTP
 #iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
@@ -84,7 +84,7 @@ iptables -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p udp -j REJECT
 
 printf "\e[1;33m debug\e[0m 6"
 # Log before dropping
-iptables -A INPUT  -j LOG  -m limit --limit 12/min --log-level 4 --log-prefix 'IP INPUT drop: '
+iptables -A INPUT -j LOG -m limit --limit 12/min --log-level 4 --log-prefix 'IP INPUT drop: '
 iptables -A INPUT -j DROP
 
 # }
