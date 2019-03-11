@@ -30,34 +30,34 @@ done < iran_ipv4.txt
 # Create firewall ruls
 # {
 # Empty all rules
-iptables -t filter -F
-iptables -t filter -X
+iptables -F
+iptables -X
 
 printf "\e[1;33m debug\e[0m 1"
 # Set default output to accept because of VPN
 # We don't need forward for softether so drop all
-iptables -t filter -P INPUT DROP
-iptables -t filter -P FORWARD DROP
-iptables -t filter -P OUTPUT ACCEPT
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
 
 printf "\e[1;33m debug\e[0m 2"
 # Authorize already established connections. it is important for speed
 iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -t filter -A INPUT -i lo -j ACCEPT
-iptables -t filter -A OUTPUT -o lo -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
 
 printf "\e[1;33m debug\e[0m 3"
 # Disable input Ping it also will disable PMTUD. I am not sure about this rule.
-iptables -t filter -A INPUT -p icmp -m state --state NEW -j DROP
+iptables -A INPUT -p icmp -m state --state NEW -j DROP
 #iptables -t filter -A INPUT -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
 #iptables -t filter -A OUTPUT -p icmp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-iptables -t filter -A OUTPUT -p icmp -m -j ACCEPT
+iptables -A OUTPUT -p icmp -j ACCEPT
 
 printf "\e[1;33m debug\e[0m 4"
 # Access SSH only from Iran 
-iptables -t filter -A INPUT -m set --match-set iran_ipv4 src -p tcp --dport 22 --state new -j ACCEPT
-iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst -p tcp --sport 22 --state new -j ACCEPT
+iptables -A INPUT  -p tcp --dport 22 -m set --match-set iran_ipv4 src --state new -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 22 -m set --match-set iran_ipv4 dst --state new -j ACCEPT
 
 # ------ need rethink ------
 # Enable DNS
@@ -73,13 +73,13 @@ iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst -p tcp --sport 22 
 
 printf "\e[1;33m debug\e[0m 5"
 # you only can connect to vpn from iran and no program can start connection to Iran so you can't connect to Iran with vpn
-iptables -t filter -A INPUT -m set --match-set iran_ipv4 src --state new -p tcp --dport 443 -j ACCEPT
-iptables -t filter -A INPUT -m set --match-set iran_ipv4 src --state new -p udp --dport 443 -j ACCEPT
-iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p tcp -j REJECT --reject-with icmp-host-prohibited
-iptables -t filter -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p udp -j REJECT --reject-with icmp-host-prohibited
+iptables -A INPUT -m set --match-set iran_ipv4 src --state new -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -m set --match-set iran_ipv4 src --state new -p udp --dport 443 -j ACCEPT
+iptables -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p tcp -j REJECT --reject-with icmp-host-prohibited
+iptables -A OUTPUT -m set --match-set iran_ipv4 dst --state new -p udp -j REJECT --reject-with icmp-host-prohibited
 
 # enable NTP
-#iptables -t filter -A OUTPUT -p udp --dport 123 -j ACCEPT
+#iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
 # it will accept by default rule. no need to set it.
 
 printf "\e[1;33m debug\e[0m 6"
