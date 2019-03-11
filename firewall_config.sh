@@ -77,7 +77,7 @@ iptables -A INPUT  -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 # Disable input Ping it also will disable PMTUD. I am not sure about this rule.
-iptables -A INPUT -i $INTERFACE -p icmp -m state --state NEW -j DROP
+iptables -A INPUT -i $INTERFACE -p icmp -m state --state NEW -j ACCEPT
 #iptables -t filter -A INPUT -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
 #iptables -t filter -A OUTPUT -p icmp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -o $INTERFACE -p icmp -j ACCEPT
