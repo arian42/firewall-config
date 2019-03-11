@@ -56,8 +56,8 @@ iptables -A OUTPUT -p icmp -j ACCEPT
 
 printf "\e[1;33m debug\e[0m 4"
 # Access SSH only from Iran 
-iptables -A INPUT  -p tcp --dport 22 -m set --match-set iran_ipv4 src -m --state new -j ACCEPT
-iptables -A OUTPUT -p tcp --sport 22 -m set --match-set iran_ipv4 dst -m --state new -j ACCEPT
+iptables -A INPUT  -p tcp --dport 22 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 22 -m set --match-set iran_ipv4 dst -m state --state new -j ACCEPT
 
 # ------ need rethink ------
 # Enable DNS
