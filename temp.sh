@@ -1,6 +1,9 @@
 iptables -F
 iptables -X
 
+ 
+ipset destroy white_list hash:ip
+ipset destroy block_list hash:ip
 
 ipset create white_list hash:ip
 ipset create block_list hash:ip
@@ -14,7 +17,8 @@ iptables -A REJECT_WITH -j REJECT --reject-with icmp-port-unreachable
 iptables -N VPN_INPUT
 iptables -A VPN_INPUT -m set --match-set white_list src -j ACCEPT
 iptables -A VPN_INPUT -m set --match-set iran_ipv4 src -j SET --add-set white_list src
-iptables -A VPN_INPUT -j SET --add-set block_list src
+iptables -A VPN_INPUT -m set ! --match-set iran_ipv4 src -j SET --add-set block_list src
+iptables -A VPN_INPUT -j DROP
 
 
 iptables -A INPUT -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
