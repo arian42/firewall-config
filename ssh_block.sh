@@ -1,3 +1,4 @@
+# This file is temporary
 # create REJECT_WITH chain that does different rejects for tcp/udp
 iptables -N REJECT_WITH
 iptables -A REJECT_WITH -p tcp -j REJECT --reject-with tcp-reset
