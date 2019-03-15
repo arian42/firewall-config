@@ -2,8 +2,8 @@ iptables -F
 iptables -X
 
  
-ipset destroy white_list hash:ip
-ipset destroy block_list hash:ip
+ipset destroy white_list
+ipset destroy block_list
 
 ipset create white_list hash:ip
 ipset create block_list hash:ip
