@@ -51,12 +51,12 @@ systemctl start iptables
 # ------------------
 
 # Create ipset for iran IPs
-ipset create iran_ipv4 hash:net
+#ipset create iran_ipv4 hash:net
 
 # Read CIDR file and add them to ipset
-while read line; do
-  ipset add iran_ipv4 $line
-done < iran_ipv4.txt
+#while read line; do
+#  ipset add iran_ipv4 $line
+#done < iran_ipv4.txt
 
 # Create firewall ruls
 # {
@@ -66,7 +66,7 @@ iptables -X
 
 # Set default output to accept because of VPN
 # We don't need forward for softether so drop all
-iptables -P INPUT DROP
+iptables -P INPUT ACCEPT
 iptables -P FORWARD DROP
 iptables -P OUTPUT ACCEPT
 
@@ -77,18 +77,18 @@ iptables -A INPUT  -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 # Disable input Ping it also will disable PMTUD. I am not sure about this rule.
-iptables -A INPUT -i $INTERFACE -p icmp -m state --state NEW -j ACCEPT
+#iptables -A INPUT -i $INTERFACE -p icmp -m state --state NEW -j ACCEPT
 #iptables -t filter -A INPUT -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
 #iptables -t filter -A OUTPUT -p icmp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-iptables -A OUTPUT -o $INTERFACE -p icmp -j ACCEPT
+#iptables -A OUTPUT -o $INTERFACE -p icmp -j ACCEPT
 
 # Access SSH only from Iran 
-iptables -A INPUT -i $INTERFACE -p tcp --dport 22 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
+#iptables -A INPUT -i $INTERFACE -p tcp --dport 22 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
 #iptables -A OUTPUT -o $INTERFACE -p tcp --sport 22 -m set --match-set iran_ipv4 dst -m state --state new -j ACCEPT
 
 # With this rule, you only can connect to vpn from iran and no program can start connection to Iran so you can't connect to Iran with vpn
-iptables -A INPUT  -i $INTERFACE -p tcp --dport 443 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
-iptables -A INPUT  -i $INTERFACE -p udp --dport 443 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
+#iptables -A INPUT  -i $INTERFACE -p tcp --dport 443 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
+#iptables -A INPUT  -i $INTERFACE -p udp --dport 443 -m set --match-set iran_ipv4 src -m state --state new -j ACCEPT
 iptables -A OUTPUT -o $INTERFACE -p tcp -m set --match-set iran_ipv4 dst -m state --state new -j REJECT --reject-with icmp-host-prohibited
 iptables -A OUTPUT -o $INTERFACE -p udp -m set --match-set iran_ipv4 dst -m state --state new -j REJECT --reject-with icmp-host-prohibited
 
@@ -96,8 +96,8 @@ iptables -A OUTPUT -o $INTERFACE -p udp -m set --match-set iran_ipv4 dst -m stat
 #iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
 
 # Log before dropping
-iptables -A INPUT -j LOG -m limit --limit 12/min --log-level 4 --log-prefix 'IP INPUT drop: '
-iptables -A INPUT -j DROP
+#iptables -A INPUT -j LOG -m limit --limit 12/min --log-level 4 --log-prefix 'IP INPUT drop: '
+#iptables -A INPUT -j DROP
 
 # }
 
