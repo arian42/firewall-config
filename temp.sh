@@ -32,8 +32,8 @@ iptables -A INPUT -i eth0 -p udp --dport 53 -m state --state NEW -j VPN_INPUT
 
 iptables -A OUTPUT -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
-iptables -A OUTPUT -m state --state NEW -m set --match-set white_list src -j ACCEPT
-iptables -A OUTPUT -m state --state NEW -m set --match-set iran_ipv4 src -j REJECT_WITH
+iptables -A OUTPUT -m set --match-set white_list src -j ACCEPT
+iptables -A OUTPUT -m set --match-set iran_ipv4 src -j REJECT_WITH
 
 
 iptables -P INPUT DROP
