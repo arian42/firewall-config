@@ -66,7 +66,7 @@ iptables -X
 
 # Set default output to accept because of VPN
 # We don't need forward for softether so drop all
-iptables -P INPUT ACCEPT
+iptables -P INPUT DROP
 iptables -P FORWARD DROP
 iptables -P OUTPUT ACCEPT
 
