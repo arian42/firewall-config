@@ -88,11 +88,11 @@ iptables -A ACCESS_CTRL -j DROP
 # Authorize already established connections, it is important for speed. Allow port 443 22 53 
 iptables -A INPUT -i $INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -i $INTERFACE -m set --match-set white_list src -j ACCEPT
 iptables -A INPUT -i $INTERFACE -m set --match-set block_list src -j DROP
 iptables -A INPUT -i $INTERFACE -p tcp --dport 443 -m state --state NEW -j ACCESS_CTRL 
-iptables -A INPUT -i $INTERFACE -p udp --dport 443 -m state --state NEW -j ACCESS_CTRL 
 iptables -A INPUT -i $INTERFACE -p tcp --dport 22  -m state --state NEW -j ACCESS_CTRL 
-iptables -A INPUT -i $INTERFACE -p udp --dport 53  -m state --state NEW -j ACCESS_CTRL 
+
 
 # remember the output chain policy is accept.
 iptables -A OUTPUT -o $INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
