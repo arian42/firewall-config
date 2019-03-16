@@ -27,11 +27,11 @@ if [[ "$SET_CONFIG" == "n" ]]; then
 fi
 
 # guess the default public network interface
-GUESS_INTERFACE=$(ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}')
-ip link
-until [[ "$INTERFACE" != "" ]]; do
-  read -rp "Enter the public network interface: " -e -i "$GUESS_INTERFACE" INTERFACE
-done
+#GUESS_INTERFACE=$(ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}')
+#ip link
+#until [[ "$INTERFACE" != "" ]]; do
+#  read -rp "Enter the public network interface: " -e -i "$GUESS_INTERFACE" INTERFACE
+#done
 
 # Install ipset and iptables
 yum install iptables ipset -y
@@ -86,20 +86,19 @@ iptables -A ACCESS_CTRL -m set ! --match-set iran_ipv4 src -j SET --add-set bloc
 iptables -A ACCESS_CTRL -j DROP
 
 # Authorize already established connections, it is important for speed. Allow port 443 22 53 
-iptables -A INPUT -i $INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
-iptables -A INPUT -i $INTERFACE -m set --match-set white_list src -j ACCEPT
-iptables -A INPUT -i $INTERFACE -m set --match-set block_list src -j DROP
-iptables -A INPUT -i $INTERFACE -p tcp --dport 443 -m state --state NEW -j ACCESS_CTRL 
-iptables -A INPUT -i $INTERFACE -p tcp --dport 22  -m state --state NEW -j ACCESS_CTRL 
-
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -m set --match-set white_list src -j ACCEPT
+iptables -A INPUT -m set --match-set block_list src -j DROP
+iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACCESS_CTRL 
+iptables -A INPUT -p tcp --dport 22  -m state --state NEW -j ACCESS_CTRL 
 
 # remember the output chain policy is accept.
-iptables -A OUTPUT -o $INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
-iptables -A OUTPUT -o $INTERFACE -m set --match-set block_list dst -j DROP
-iptables -A OUTPUT -o $INTERFACE -m state --state NEW -m set --match-set white_list dst -j ACCEPT
-iptables -A OUTPUT -o $INTERFACE -m state --state NEW -m set --match-set iran_ipv4 dst -j REJECT_WITH
+iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -m set --match-set block_list dst -j DROP
+iptables -A OUTPUT -m state --state NEW -m set --match-set white_list dst -j ACCEPT
+iptables -A OUTPUT -m state --state NEW -m set --match-set iran_ipv4 dst -j REJECT_WITH
 
 # enable NTP, it will accept by default rule. no need to set it.
 #iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
