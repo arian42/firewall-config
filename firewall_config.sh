@@ -79,7 +79,8 @@ iptables -A REJECT_WITH -j REJECT --reject-with icmp-port-unreachable
 
 # Create ACL chain to create block list or white list
 iptables -N ACCESS_CTRL
-iptables -A ACCESS_CTRL -m set --match-set white_list src -j ACCEPT
+# this is repeated in INPUT
+#iptables -A ACCESS_CTRL -m set --match-set white_list src -j ACCEPT
 iptables -A ACCESS_CTRL -j LOG --log-prefix "New connection from: "
 iptables -A ACCESS_CTRL -m set --match-set iran_ipv4 src -j SET --add-set white_list src
 iptables -A ACCESS_CTRL -m set ! --match-set iran_ipv4 src -j SET --add-set block_list src
@@ -96,7 +97,8 @@ iptables -A INPUT -p tcp --dport 22  -m state --state NEW -j ACCESS_CTRL
 # remember the output chain policy is accept.
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -m set --match-set block_list dst -j DROP
+# this is useless we trust our self
+#iptables -A OUTPUT -m set --match-set block_list dst -j DROP
 iptables -A OUTPUT -m state --state NEW -m set --match-set white_list dst -j ACCEPT
 iptables -A OUTPUT -m state --state NEW -m set --match-set iran_ipv4 dst -j REJECT_WITH
 
