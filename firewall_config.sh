@@ -53,7 +53,7 @@ systemctl enable ipset
 # Create ipset
 ipset create iran_ipv4 hash:net
 ipset create white_list hash:ip
-ipset create block_list hash:ip
+#ipset create block_list hash:ip
 
 # Read CIDR file and add them to ipset
 while read line; do
@@ -67,43 +67,41 @@ iptables -X
 
 # Set default output to accept because of new connections to random hosts
 # We don't need forward for softether so drop all
-iptables -P INPUT DROP
+iptables -P INPUT ACCEPT
 iptables -P FORWARD DROP
 iptables -P OUTPUT ACCEPT
 
 # Create reject chain to proper rejection
-iptables -N REJECT_WITH
-iptables -A REJECT_WITH -j LOG --log-prefix "Access to ip rejected: "
-iptables -A REJECT_WITH -p tcp -j REJECT --reject-with tcp-reset
-iptables -A REJECT_WITH -j REJECT --reject-with icmp-port-unreachable
+#iptables -N REJECTWITH
+#iptables -A REJECTWITH -j LOG --log-prefix "Access to ip rejected: "
+#iptables -A REJECTWITH -p tcp -j REJECT --reject-with tcp-reset
+#iptables -A REJECTWITH -j REJECT --reject-with icmp-port-unreachable
 
 # Create ACL chain to create block list or white list
-iptables -N ACCESS_CTRL
+iptables -N ACL
 # this is repeated in INPUT
-#iptables -A ACCESS_CTRL -m set --match-set white_list src -j ACCEPT
-iptables -A ACCESS_CTRL -j LOG --log-prefix "New connection from: "
-iptables -A ACCESS_CTRL -m set --match-set iran_ipv4 src -j SET --add-set white_list src
-iptables -A ACCESS_CTRL -m set ! --match-set iran_ipv4 src -j SET --add-set block_list src
-iptables -A ACCESS_CTRL -j DROP
+#iptables -A ACL -m set --match-set white_list src -j ACCEPT
+#iptables -A ACL -j LOG --log-prefix "New connection from: "
+iptables -A ACL -m set --match-set iran_ipv4 src -j SET --add-set white_list src
+#iptables -A ACL -m set ! --match-set iran_ipv4 src -j SET --add-set block_list src
+iptables -A ACL -j ACCEPT
 
-# Authorize already established connections, it is important for speed. Allow port 443 22 53 
+
+# this is realy open
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A INPUT -m set --match-set white_list src -j ACCEPT
-iptables -A INPUT -m set --match-set block_list src -j DROP
-iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACCESS_CTRL 
-iptables -A INPUT -p tcp --dport 22  -m state --state NEW -j ACCESS_CTRL 
+# filter port 22 from attacers 
+iptables -A INPUT -p tcp --dport 22 -m set ! --match-set white_list -j DROP
+# we need this for output white list pass
+iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACL 
+# we accept other things
 
-# remember the output chain policy is accept.
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-# this is useless we trust our self
-#iptables -A OUTPUT -m set --match-set block_list dst -j DROP
 iptables -A OUTPUT -m state --state NEW -m set --match-set white_list dst -j ACCEPT
-iptables -A OUTPUT -m state --state NEW -m set --match-set iran_ipv4 dst -j REJECT_WITH
-
-# enable NTP, it will accept by default rule. no need to set it.
-#iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
+iptables -A OUTPUT -m state --state NEW -m set --match-set iran_ipv4 dst -j REJECT
+# we accept other things
 
 
 # Save the firewall setting
