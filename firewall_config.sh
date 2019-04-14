@@ -53,7 +53,7 @@ systemctl enable ipset
 # Create ipset
 ipset create iran_ipv4 hash:net
 ipset create white_list hash:ip
-#ipset create block_list hash:ip
+
 
 # Read CIDR file and add them to ipset
 while read line; do
@@ -65,43 +65,44 @@ done < iran_ipv4.txt
 iptables -F
 iptables -X
 
-# Set default output to accept because of new connections to random hosts
-# We don't need forward for softether so drop all
+
+# The Gool is to block output to a iran_ipv4 and create a white list form it
+# and block ssh attackers, so this is pretty open firewall
 iptables -P INPUT ACCEPT
 iptables -P FORWARD DROP
 iptables -P OUTPUT ACCEPT
 
-# Create reject chain to proper rejection
-#iptables -N REJECTWITH
-#iptables -A REJECTWITH -j LOG --log-prefix "Access to ip rejected: "
-#iptables -A REJECTWITH -p tcp -j REJECT --reject-with tcp-reset
-#iptables -A REJECTWITH -j REJECT --reject-with icmp-port-unreachable
 
-# Create ACL chain to create block list or white list
+# Create ACL chain to create white list
 iptables -N ACL
-# this is repeated in INPUT
-#iptables -A ACL -m set --match-set white_list src -j ACCEPT
-#iptables -A ACL -j LOG --log-prefix "New connection from: "
+# This checks if it is alredy in white list
+iptables -A ACL -m set --match-set white_list src -j ACCEPT
+# This will create a white list
 iptables -A ACL -m set --match-set iran_ipv4 src -j SET --add-set white_list src
-#iptables -A ACL -m set ! --match-set iran_ipv4 src -j SET --add-set block_list src
+# Accept other things
 iptables -A ACL -j ACCEPT
 
 
-# this is realy open
+# Accept all local
 iptables -A INPUT -i lo -j ACCEPT
+# This roule is for speed up
 iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-#iptables -A INPUT -m set --match-set white_list src -j ACCEPT
 # filter port 22 from attacers 
 iptables -A INPUT -p tcp --dport 22  -m set ! --match-set white_list src -j DROP
-# we need this for output white list pass
+# We need this for output white list pass
 iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACL 
-# we accept other things
+# We accept other things
 
+
+# Accept all local
 iptables -A OUTPUT -o lo -j ACCEPT
+# This is super important because iran_ipv4 is big list 
 iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+# Allow the white list 
 iptables -A OUTPUT -m set --match-set white_list dst -j ACCEPT
+# Block if it is not in white list and it is in iran_ip
 iptables -A OUTPUT -m set --match-set iran_ipv4 dst -j REJECT
-# we accept other things
+# We accept other things
 
 
 # Save the firewall setting
