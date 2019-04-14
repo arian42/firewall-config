@@ -92,7 +92,7 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 #iptables -A INPUT -m set --match-set white_list src -j ACCEPT
 # filter port 22 from attacers 
-iptables -A INPUT -p tcp --dport 22  -m set ! --match-set white_list -j DROP
+iptables -A INPUT -p tcp --dport 22  -m set ! --match-set white_list src -j DROP
 # we need this for output white list pass
 iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACL 
 # we accept other things
