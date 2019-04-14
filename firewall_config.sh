@@ -90,17 +90,17 @@ iptables -A ACL -j ACCEPT
 # this is realy open
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -A INPUT -m set --match-set white_list src -j ACCEPT
+#iptables -A INPUT -m set --match-set white_list src -j ACCEPT
 # filter port 22 from attacers 
-iptables -A INPUT -p tcp --dport 22 -m set ! --match-set white_list -j DROP
+iptables -A INPUT -p tcp --dport 22  -m set ! --match-set white_list -j DROP
 # we need this for output white list pass
 iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACL 
 # we accept other things
 
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -m state --state NEW -m set --match-set white_list dst -j ACCEPT
-iptables -A OUTPUT -m state --state NEW -m set --match-set iran_ipv4 dst -j REJECT
+iptables -A OUTPUT -m set --match-set white_list dst -j ACCEPT
+iptables -A OUTPUT -m set --match-set iran_ipv4 dst -j REJECT
 # we accept other things
 
 
